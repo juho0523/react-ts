@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import './App.css'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Header from './layouts/Header';
@@ -14,7 +13,6 @@ import SignIn from './users/SignIn';
 import AdminPage from './admin/AdminPage';
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
     <UserProvider>
