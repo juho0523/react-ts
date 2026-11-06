@@ -20,7 +20,7 @@ const Header = () => {
       <h1><Link to='/'>SPACE SHOP</Link></h1>
       <nav>
         <Link to='/'>상품 목록</Link>
-        <Link to='/product/new'>상품 등록</Link>
+        <Link to='/product/new' onClick={handleAddClick}>상품 등록</Link>
         <Link to='/cart'>장바구니 ({totalQuantity})</Link>
         {isAdmin && <Link to='/admin'>관리자</Link>}
         {currentUser ? (
