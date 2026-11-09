@@ -309,3 +309,22 @@ main { max-width: 960px; margin: 0 auto; padding: 24px; }
 .admin-page tbody tr:last-child td { border-bottom: none; }
 .admin-page tbody tr:hover { background: var(--accent-bg); }
 .admin-page .admin-num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 상품 카드 이미지 */
+.product-card_img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;   /* 가로 : 세로 비율을 4 : 3으로 고정 */
+  object-fit: contain;   /* 비율을 유지한 채 칸 안에 전부 보이게 */
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+/* 상품 상세 이미지 */
+.product-detail_img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;   /* 카드와 같은 비율 */
+  object-fit: contain;
+  border-radius: 8px;
+}

@@ -2,10 +2,12 @@ import { Link, useParams } from "react-router-dom"
 import { useProduct } from "../context/ProductContext"
 import { useCart } from "../context/CartContext"
 
+const NO_IMAGE = "/images/no-image.png";
+
 const ProductDetail = () => {
     const { id } = useParams<{ id: string }>()
     const { products } = useProduct()
-    const {addToCart} = useCart()
+    const { addToCart } = useCart()
 
     const product = products.find((p) => p.id === Number(id))
 
@@ -21,6 +23,11 @@ const ProductDetail = () => {
     return (
         <article className="product-detail">
             <Link to="/" className="product-detail_back">← 상품 목록</Link>
+            <img
+                className="product-detail_img"
+                src={product.image ?? NO_IMAGE}
+                alt={product.pName}
+            />
             <span className="product-detail_category">{product.category}</span>
             <h2>{product.pName}</h2>
             <p className="product-detail_price">{product.price.toLocaleString()}원</p>
