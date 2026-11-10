@@ -121,8 +121,7 @@ app.get('/api/users', async (req, res) => {
 // 회원 가입
 app.post('/api/users', async (req, res) => {
     const {username, password, name, email} = req.body
-    const sql = 'INSERT INTO users(username, password, name, email)'
-            + 'VALUES ($1, $2, $3, $4)'
+    const sql = 'INSERT INTO users(username, password, name, email) VALUES ($1, $2, $3, $4)'
     try {
         await db.query(sql, [username, password, name, email])
         res.send('회원 가입 완료')
