@@ -11,6 +11,7 @@ import UserProvider from './context/UserProvider';
 import SignUp from './users/SignUp';
 import SignIn from './users/SignIn';
 import AdminPage from './admin/AdminPage';
+import MyPage from './users/MyPage';
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
             <Route path='/signin' element={<SignIn />} />
             <Route path='/signup' element={<SignUp />} />
             <Route path='/admin' element={<AdminPage />} />
+            <Route path='/mypage' element={<MyPage />} />
           </Routes>
         </main>
       </BrowserRouter>

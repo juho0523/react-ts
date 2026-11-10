@@ -24,3 +24,7 @@ export interface SignUpForm extends Omit<User, 'id' | 'role'>{
    Pick은 지정한 속성만 남깁니다.
    LoginForm은 username과 password만 가집니다. */
 export type LoginForm = Pick<User, 'username' | 'password'>
+
+
+// 회원 정보 수정 폼 타입
+export type UserUpdateForm = Pick<User, "name" | "email">

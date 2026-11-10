@@ -1,11 +1,14 @@
 import express from 'express'
 import pg from 'pg'
+import cors from 'cors'
 
 const app = express();
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 // postgreSQL 연결 설정
-const db = new pg.Client({
+const db = process.env.DATABASE_URL
+  ? new pg.Client({ connectionString: process.env.DATABASE_URL })
+  : new pg.Client({
   host: "localhost",
   user: "tsuser",
   password: "1234",
@@ -21,7 +24,12 @@ try {
 }
 
 // 본문 요청 파싱
-app.use(express.json());
+app.use(express.json())
+
+// cors 요청 허가
+app.use(cors());
+
+
 
 // 기본 라우터
 app.get("/", (req, res) => {
@@ -144,6 +152,29 @@ app.post('/api/users/login', async (req, res) => {
         res.status(500).send('로그인 중 오류가 발생했습니다')
     }
 })
+
+// 회원 정보 수정 (이름 · 이메일)
+app.put("/api/users/:id", async (req, res) => {
+  const uid = req.params.id;
+  const { name, email } = req.body;
+  // RETURNING: 바꾼 뒤의 회원 정보를 바로 돌려받습니다. (password는 빼고)
+  const sql = "UPDATE users SET name = $1, email = $2 WHERE id = $3 "
+        + "RETURNING id, username, name, email, role, created_at";
+  try {
+    const result = await db.query(sql, [name, email, uid]);
+    if (result.rows.length === 0) {
+      return res.status(404).send("회원을 찾을 수 없습니다.");
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    // 23505: UNIQUE 위반 (다른 회원이 쓰는 이메일)
+    if (err.code === "23505") {
+      return res.status(409).send("이미 사용 중인 이메일입니다.");
+    }
+    console.log("회원 수정 오류!", err);
+    res.status(500).send("회원 정보 수정 중 오류가 발생했습니다.");
+  }
+});
 
 // 서버 실행
 app.listen(PORT, () => {

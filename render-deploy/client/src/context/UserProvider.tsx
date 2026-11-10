@@ -1,41 +1,89 @@
-import { useState } from "react"
-import { UserContext } from "./UserContext"
-import { initialUsers } from "../datas/users"
-import type { LoginForm, NewUser, User } from "../types/user"
 
-const UserProvider = ({children}: {children: React.ReactNode}) => {
-    const [users, setUsers] = useState<User[]>(initialUsers)
+import { useEffect, useState } from "react"
+import { UserContext } from "./UserContext"
+import type {
+    LoginForm,
+    NewUser,
+    User,
+    UserUpdateForm
+} from "../types/user"
+
+import {
+    createUser,
+    getUsers,
+    modifyUser,
+    requestLogin
+} from "../api/users"
+
+const UserProvider = ({ children }: { children: React.ReactNode }) => {
+    const [users, setUsers] = useState<User[]>([])
     const [currentUser, setCurrentUser] = useState<User | null>(null)
 
-    const signup = (newUser: NewUser) => {
-        const user: User = {...newUser, id:Date.now()}
-        setUsers([...users, user])
+    // 최초 실행 시 회원 목록 조회
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const data = await getUsers()
+                setUsers(data)
+            } catch (error) {
+                console.error("회원 목록 조회 실패:", error)
+            }
+        }
+
+        fetchUsers()
+    }, [])
+
+    // 회원가입
+    const signup = async (newUser: NewUser) => {
+        await createUser(newUser)
+
+        // 회원가입 후 목록 갱신
+        const data = await getUsers()
+        setUsers(data)
     }
 
-    const login = (loginForm: LoginForm) => {
-        const found = users.find(
-            (user) => user.username === loginForm.username && user.password === loginForm.password
-        )
-        if(!found) return false
-        setCurrentUser(found)
-        return true
+    // 로그인
+    const login = async (loginForm: LoginForm) => {
+        try {
+            const user = await requestLogin(loginForm)
+            setCurrentUser(user)
+            return true
+        } catch (error) {
+            console.error("로그인 실패:", error)
+            return false
+        }
     }
 
+    // 회원 정보 수정
+    const updateUser = async (form: UserUpdateForm) => {
+        if (!currentUser) return
+
+        const updatedUser = await modifyUser(currentUser.id, form)
+
+        setCurrentUser(updatedUser)
+
+        // 회원 목록 갱신
+        const data = await getUsers()
+        setUsers(data)
+    }
+
+    // 로그아웃
     const logout = () => {
         setCurrentUser(null)
     }
 
-    return(
+    return (
         <UserContext.Provider value={{
             users,
             currentUser,
             signup,
             login,
+            updateUser,
             logout
         }}>
             {children}
         </UserContext.Provider>
-
     )
 }
+
 export default UserProvider
