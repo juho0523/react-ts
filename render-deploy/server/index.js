@@ -135,8 +135,7 @@ app.post('/api/users', async (req, res) => {
 // 로그인
 app.post('/api/users/login', async (req, res) => {
     const { username, password} = req.body
-    const sql = 'SELECT id, username, name, email, role, created_at FROM users'
-            + 'WHERE username = $1 AND password = $2'
+    const sql = 'SELECT id, username, name, email, role, created_at FROM users WHERE username = $1 AND password = $2'
     try {
         const result = await db.query(sql, [username, password])
         if(result.rows.length === 0) {
