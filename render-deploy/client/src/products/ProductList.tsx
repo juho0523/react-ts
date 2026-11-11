@@ -1,20 +1,20 @@
-import ProductCard from './ProductCard';
-// import { products } from '../datas/products';
-import { useProduct } from "../context/ProductContext"
+import ProductCard from "./ProductCard";
+import { useProduct } from "../context/ProductContext";
 
 const ProductList = () => {
-  const {products} = useProduct()
+    //  useProduct() 훅으로 데이터를 사용함
+    const { products } = useProduct();
 
-  return(
-    <div className='product-list'>
-      {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-        />
-      ))}
-    </div>
-  )
+    return(
+        <div className="product-list">
+            {products.map(product => (
+                <ProductCard 
+                    key={product.id}
+                    product={product}
+                />
+            ))}
+        </div>
+    )
 }
 
 export default ProductList;

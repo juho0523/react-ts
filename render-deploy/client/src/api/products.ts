@@ -1,24 +1,56 @@
-import type { Category, Product } from "../types/product";
 import api from "./api";
-interface ProductRow {
-  id: number;
-  p_name: string;
-  category: Category;
-  price: number;
-  description: string;
-  image?: string;  // 상품 이미지 경로 (없을 수도 있으므로 ? 선택 속성)
+import type { Category, NewProduct, Product } from "../types/product";
+
+// 서버와 연결할 파일
+// 서버(DB)에서 데이터 타입 정의
+interface ProductRow{
+    id: number;
+    p_name: string;
+    category: Category;
+    price: number;
+    description: string;
+    image: string | null
 }
 
-const toProduct = (row: ProductRow): Product => ({
+// DB 데이터 -> 화면 보여주기
+const toProduct = (row: ProductRow) : Product => ({
     id: row.id,
     pName: row.p_name,
     category: row.category,
     price: row.price,
     description: row.description,
-    image: row.image
+    image: row.image ?? undefined, // 경로 "/images/keyboard"png"
 })
 
+// 상품 목록 
 export const getProducts = async () => {
-    const response = await api.get<ProductRow[]>('/products')
-    return response.data.map(toProduct)
+    const response = await api.get<ProductRow[]>('/products');
+    return response.data.map(toProduct);
+}
+
+// 상품 등록(폼 필드에 입력된값을 DB로 보냄)
+export const createProduct = async (product: NewProduct) => {
+    await api.post("/products", {
+        pName: product.pName,
+        category: product.category,
+        price: product.price,
+        description: product.description,
+        image: product.image
+    });
+} 
+
+// 상품 삭제 - api.delete()
+export const deleteProduct = async (productId: number) => {
+    await api.delete(`/products/${productId}`);
+}
+
+// 상품 수정(폼에서 수정한 데이터 -> DB로 보내기) : api.put()
+export const modifyProduct = async (product: Product) => {
+    await api.put(`/products/${product.id}`, {
+        pName: product.pName,
+        category: product.category,
+        price: product.price,
+        description: product.description,
+        image: product.image
+    })
 }
