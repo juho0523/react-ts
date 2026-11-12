@@ -34,8 +34,8 @@ export const modifyUser = async (id: number, form: UserUpdateForm) => {
 
 
 // 로그인 상태 확인
-export const getMe = async (): Promise<User> => {
-  const response = await api.get<User>('/users/me')
+export const getMe = async (): Promise<User | null> => {
+  const response = await api.get<User | null>('/users/me')
   return response.data
 }
 

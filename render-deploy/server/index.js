@@ -45,13 +45,7 @@ app.use(session({
     maxAge: 1000 * 60 * 60
   }
 }))
-// 로그인 여부 확인 함수
-const requireLogin = (req, res, next) => {
-  if(!req.session.user) {
-    return res.status(401).send('로그인이 필요합니다')
-  }
-  next()
-}
+
 
 
 // 기본 라우터
@@ -185,7 +179,10 @@ app.post("/api/users/login", async (req, res) => {
 });
 
 // 현재 로그인 사용자 확인
-app.get('/api/users/me', requireLogin, (req, res) => {
+app.get('/api/users/me', (req, res) => {
+  if(!req.session.user) {
+    return res.json(null)
+  }
   res.json(req.session.user)
 })
 

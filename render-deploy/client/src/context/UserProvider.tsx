@@ -26,9 +26,16 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
     // 최초 실행 시 회원 목록 조회, 세션에 로그인 정보 있는지 확인
     useEffect(() => {
         // 세션에 로그인 정보 있는지 확인
+        
         getMe()
             .then(setCurrentUser)
-            .catch(() => setCurrentUser(null))
+            .catch(error => {
+                if (error.response?.status === 401) {
+                    setCurrentUser(null)
+                } else {
+                    console.error('세션 확인 실패: ', error)
+                }
+            })
             .finally(() => setIsAuthLoading(false))
 
         // 회원 목록 조회
