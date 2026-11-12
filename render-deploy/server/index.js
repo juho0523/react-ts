@@ -1,6 +1,8 @@
 import express from 'express'
 import pg from 'pg'
 import cors from 'cors'
+import bcrypt from 'bcrypt'
+import session from 'express-session'
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -23,12 +25,33 @@ try {
   console.error("postgreSQL 연결 실패:", err.message);
 }
 
+// 해당 미들웨어들은 app.api들보다는 위에 있어야 함
 // 본문 요청 파싱
 app.use(express.json())
-
 // cors 요청 허가
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
 
+  // 프론트엔드와 백엔드 사이에서 쿠키를 주고받기 위함
+  credentials: true
+}));
+// 세션
+app.use(session({
+  secret: 'space-shop-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    maxAge: 1000 * 60 * 60
+  }
+}))
+// 로그인 여부 확인 함수
+const requireLogin = (req, res, next) => {
+  if(!req.session.user) {
+    return res.status(401).send('로그인이 필요합니다')
+  }
+  next()
+}
 
 
 // 기본 라우터
@@ -122,7 +145,9 @@ app.post('/api/users', async (req, res) => {
     const {username, password, name, email} = req.body
     const sql = 'INSERT INTO users(username, password, name, email) VALUES ($1, $2, $3, $4)'
     try {
-        await db.query(sql, [username, password, name, email])
+        // 비밀번호 암호화해서 10번 암호화 반복
+        const hashedPassword = await bcrypt.hash(password, 10)
+        await db.query(sql, [username, hashedPassword, name, email])
         res.send('회원 가입 완료')
     } catch(err) {
         console.log('회원 가입 오류', err)
@@ -131,23 +156,49 @@ app.post('/api/users', async (req, res) => {
 })
 
 // 로그인
-app.post('/api/users/login', async (req, res) => {
-    const { username, password} = req.body
-    const sql = 'SELECT id, username, name, email, role, created_at FROM users WHERE username = $1 AND password = $2'
-    try {
-        const result = await db.query(sql, [username, password])
-        if(result.rows.length === 0) {
-            return res.status(401).send('아이디 또는 비밀번호가 올바르지 않습니다')
-        }
-        
-        res.json({
-            message: '로그인 성공',
-            user: result.rows[0]
-        })
-    } catch (err) {
-        console.log('회원 로그인 오류', err);
-        res.status(500).send('로그인 중 오류가 발생했습니다')
+app.post("/api/users/login", async (req, res) => {
+  const { username, password } = req.body;
+  // 1. 아이디로만 회원을 찾습니다. (암호화된 비밀번호는 SQL로 비교할 수 없음)
+  const sql = "SELECT * FROM users WHERE username = $1";
+  try {
+    const result = await db.query(sql, [username]);
+    const user = result.rows[0];
+
+    // 2. 회원이 없거나, 입력한 비밀번호와 저장된 해시가 맞지 않으면 실패
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).send("아이디 또는 비밀번호가 올바르지 않습니다.");
     }
+
+    // 3. 응답에서 비밀번호를 빼고 나머지만 보냅니다.
+    const { password: _, ...userInfo } = user;
+
+    req.session.user = userInfo
+
+    res.json({
+      message: "로그인 성공",
+      user: userInfo
+    });
+  } catch (err) {
+    console.log("회원 로그인 오류!", err);
+    res.status(500).send("로그인 중 오류가 발생했습니다.");
+  }
+});
+
+// 현재 로그인 사용자 확인
+app.get('/api/users/me', requireLogin, (req, res) => {
+  res.json(req.session.user)
+})
+
+// 로그아웃
+app.post('/api/users/logout', (req, res) => {
+  req.session.destroy(err => {
+    if(err) {
+      console.log('로그아웃 오류', err)
+      return res.status(500).send('로그아웃 중 오류가 발생했습니다')
+    }
+    res.clearCookie('connect.sid')
+    res.send('로그아웃 완료')
+  })
 })
 
 // 회원 정보 수정 (이름 · 이메일)

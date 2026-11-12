@@ -11,6 +11,9 @@ interface UserContextType {
     users: User[]
     currentUser: User | null
 
+    // 세션
+    isAuthLoading: boolean
+
     signup: (newUser: NewUser) => Promise<void>
     login: (loginForm: LoginForm) => Promise<boolean>
     updateUser: (form: UserUpdateForm) => Promise<void>

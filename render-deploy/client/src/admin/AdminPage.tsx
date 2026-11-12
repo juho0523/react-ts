@@ -4,7 +4,11 @@ import { useUser } from "../context/UserContext"
 
 const AdminPage = () => {
     const { products } = useProduct()
-    const { users, currentUser } = useUser()
+    const { users, currentUser, isAuthLoading } = useUser()
+
+    if(isAuthLoading) {
+        return <div>불러오는 중...</div>
+    }
 
     if (currentUser?.role !== 'admin') {
         return (

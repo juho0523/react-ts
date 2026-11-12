@@ -31,3 +31,16 @@ export const modifyUser = async (id: number, form: UserUpdateForm) => {
   const response = await api.put<User>(`/users/${id}`, form);
   return response.data;
 }
+
+
+// 로그인 상태 확인
+export const getMe = async (): Promise<User> => {
+  const response = await api.get<User>('/users/me')
+  return response.data
+}
+
+
+// 로그아웃 요청
+export const requestLogout = async (): Promise<void> => {
+  await api.post('/users/logout')
+}

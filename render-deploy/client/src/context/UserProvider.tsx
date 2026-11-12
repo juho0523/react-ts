@@ -10,17 +10,28 @@ import type {
 
 import {
     createUser,
+    getMe,
     getUsers,
     modifyUser,
-    requestLogin
+    requestLogin,
+    requestLogout
 } from "../api/users"
 
 const UserProvider = ({ children }: { children: React.ReactNode }) => {
     const [users, setUsers] = useState<User[]>([])
     const [currentUser, setCurrentUser] = useState<User | null>(null)
+    // 로그인 상태 확인 관리
+    const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true)
 
-    // 최초 실행 시 회원 목록 조회
+    // 최초 실행 시 회원 목록 조회, 세션에 로그인 정보 있는지 확인
     useEffect(() => {
+        // 세션에 로그인 정보 있는지 확인
+        getMe()
+            .then(setCurrentUser)
+            .catch(() => setCurrentUser(null))
+            .finally(() => setIsAuthLoading(false))
+
+        // 회원 목록 조회
         const fetchUsers = async () => {
             try {
                 const data = await getUsers()
@@ -68,7 +79,8 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     // 로그아웃
-    const logout = () => {
+    const logout = async () => {
+        await requestLogout()
         setCurrentUser(null)
     }
 
@@ -76,6 +88,7 @@ const UserProvider = ({ children }: { children: React.ReactNode }) => {
         <UserContext.Provider value={{
             users,
             currentUser,
+            isAuthLoading,
             signup,
             login,
             updateUser,
